@@ -1,9 +1,6 @@
-FROM alpine:3.19.1 as builder
+FROM alpine:3.19.1 AS builder
 
 WORKDIR /gstreamer
-
-RUN apk update
-RUN apk add build-base libxml2-dev bison flex glib-dev gobject-introspection-dev libcap-dev libcap-utils meson perl wget
 
 ARG GST_BUILD_VERSION=1.24
 RUN wget https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/${GST_BUILD_VERSION}/gstreamer-${GST_BUILD_VERSION}.tar.gz && \
@@ -11,9 +8,11 @@ RUN wget https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/${GST_BUIL
 
 WORKDIR /gstreamer/gstreamer-${GST_BUILD_VERSION}
 
+RUN apk update
+RUN apk add build-base libxml2-dev bison flex glib-dev gobject-introspection-dev libcap-dev libcap-utils meson perl wget git nasm
+
 RUN	meson --prefix=/gstbin  \
 	-Dauto_features=disabled \
-	-Dgstreamer:tools=enabled \
 	-Dbase=enabled \
 	-Dgood=enabled \
 	-Dbad=enabled \
@@ -29,6 +28,9 @@ RUN	meson --prefix=/gstbin  \
 	-Dgst-plugins-good:rtpmanager=enabled \
 	-Dgst-plugins-good:audioparsers=enabled \
 	-Dgst-plugins-bad:videoparsers=enabled \
+	-Dgst-plugins-bad:codectimestamper=enabled \
+	-Dgst-plugins-bad:openh264=enabled \
+	-Dtools=enabled \
 	build
 
 RUN meson compile -C build
